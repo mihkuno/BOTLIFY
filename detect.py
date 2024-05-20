@@ -65,7 +65,7 @@ while True:
         detect_region = frame[int(y_min):int(y_max), int(x_min):int(x_max)];
 
 
-    cv2.imshow('annotations', frame)
+    # cv2.imshow('annotations', frame)
     
     # Break the loop if 'q' is pressed
     if cv2.waitKey(1) & 0xFF == ord('q'):

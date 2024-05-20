@@ -5,7 +5,10 @@ from gpiozero.pins.pigpio import PiGPIOFactory
 
 factory = PiGPIOFactory()
 
+
 servo = Servo(12, pin_factory=factory)
+
+servo.mid()
 
 try:
   while True:
@@ -20,3 +23,7 @@ try:
 
 except KeyboardInterrupt:
   print("Program stopped")
+
+
+print('program done')
+

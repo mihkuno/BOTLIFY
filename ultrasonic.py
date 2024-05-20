@@ -7,6 +7,12 @@ VCC_PIN  = 21
 TRIG_PIN = 20
 ECHO_PIN = 16
 
+
+
+
+GPIO.setup(1, GPIO.OUT)
+
+
 GPIO.setup(VCC_PIN, GPIO.OUT)
 GPIO.output(VCC_PIN, True)
 
@@ -15,7 +21,19 @@ print("Distance Measurement In Progress")
 GPIO.setup(TRIG_PIN, GPIO.OUT)
 GPIO.setup(ECHO_PIN, GPIO.IN)
 
+
+GPIO.output(TRIG_PIN, True)
+GPIO.output(1, True)
+
+time.sleep(0.5)
+
+
 def distance():
+
+    pulse_start = 0
+    pulse_end = 0
+
+
     GPIO.output(TRIG_PIN, True)
     time.sleep(0.00001)
     GPIO.output(TRIG_PIN, False)
@@ -36,7 +54,7 @@ try:
     while True:
         dist = distance()
         print("Distance:", dist, "cm")
-        time.sleep(1)
+        time.sleep(0.1)
 
 except KeyboardInterrupt:
     print("Measurement stopped by user")

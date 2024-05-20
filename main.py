@@ -14,16 +14,17 @@ import time
 
 GPIO.setmode(GPIO.BCM)
 
-VCC_PIN  = 21
-TRIG_PIN = 20
-ECHO_PIN = 16
+SONIC_VCC_PIN  = 21
+SONIC_TRIG_PIN = 20
+SONIC_ECHO_PIN = 16
 
-GPIO.setup(VCC_PIN, GPIO.OUT)
-GPIO.setup(TRIG_PIN, GPIO.OUT)
-GPIO.setup(ECHO_PIN, GPIO.IN)
-GPIO.output(VCC_PIN, True)
+GPIO.setup(SONIC_VCC_PIN, GPIO.OUT)
+GPIO.setup(SONIC_TRIG_PIN, GPIO.OUT)
+GPIO.setup(SONIC_ECHO_PIN, GPIO.IN) 
+GPIO.output(SONIC_VCC_PIN, True)
+GPIO.output(SONIC_TRIG_PIN, True) # bug fix
 
-
+time.sleep(0.5)
 
 # servo motor controls
 from gpiozero import Servo
@@ -34,7 +35,6 @@ from time import sleep
 SERVO_PIN = 12
 factory = PiGPIOFactory()
 servo = Servo(SERVO_PIN, pin_factory=factory)
-
 
 
 
@@ -57,18 +57,18 @@ def setServoPosition(position):
 
 
 def getDistance():
-    global VCC_PIN
-    global TRIG_PIN
-    global ECHO_PIN
+    global SONIC_VCC_PIN
+    global SONIC_TRIG_PIN
+    global SONIC_ECHO_PIN
     
-    GPIO.output(TRIG_PIN, True)
+    GPIO.output(SONIC_TRIG_PIN, True)
     time.sleep(0.00001)
-    GPIO.output(TRIG_PIN, False)
+    GPIO.output(SONIC_TRIG_PIN, False)
 
-    while GPIO.input(ECHO_PIN) == 0:
+    while GPIO.input(SONIC_ECHO_PIN) == 0:
         pulse_start = time.time()
 
-    while GPIO.input(ECHO_PIN) == 1:
+    while GPIO.input(SONIC_ECHO_PIN) == 1:
         pulse_end = time.time()
 
     pulse_duration = pulse_end - pulse_start
@@ -106,7 +106,7 @@ def getDetection():
         print("Error: Failed to grab frame")
         return
     
-    results = model.predict(frame, conf=0.7, verbose=False)
+    results = model.predict(frame, conf=0.35, verbose=False)
 
     class_names = []
 
@@ -123,10 +123,7 @@ def getDetection():
 
 
 
-
-
 try:    
-    
     
     print('Start Listening...')
     
@@ -134,34 +131,38 @@ try:
     
         print('Set servo position to mid...')    
         setServoPosition('mid');        
-        print('Wait 0.5 second...')
-        sleep(0.5)
         
         print('Getting distance...')
-        detection_threshold = 15 # centimeters
+        detection_threshold = 9 # centimeters
         distance = getDistance()
         print('Distance: ', distance)
         
+        sleep(0.1)
+        
         if distance < detection_threshold:            
-            print('Obstruction detected... wait for 3 second before checking for detections...')
-            sleep(3)
+            print('Set servo position to mid...')    
+            setServoPosition('mid');        
+        
+            print('Obstruction detected... wait for 1.5 second before checking for detections...')
+            sleep(1.5)
+            print('Getting detection...')
             
-            print('Getting detections...')
-            detections = getDetection()  
+            detections = getDetection()
+            
             print('Detections: ', detections)
             
-            if 'bottle' in detections:
+            if 'bottle' in detections or 'wine glass' in detections or 'vase' in detections or 'toilet' in detections:
                 print('Bottle detected...')
                 setServoPosition('min');
             else: 
                 print('No bottle detected...')
                 setServoPosition('max');
             
-            print('Wait 2 seconds...')
-            sleep(2)    
+            print('Wait 0.5 seconds...')
+            sleep(0.5)    
             print('Looping...')
-    
+        
             
 except Exception as e:
-    print("Stopeed by user, cleaning up...", e)
+    print("Stopped by user, cleaning up...", e)
     GPIO.cleanup()
