@@ -20,12 +20,12 @@ try:
         # Turn the relay on
         print("Turning relay ON")
         GPIO.output(relay_pin, True)
-        time.sleep(2)  # Keep the relay on for 5 seconds
+        time.sleep(0.1)  # Keep the relay on for 5 seconds
 
         # Turn the relay off
         print("Turning relay OFF")
         GPIO.output(relay_pin, False)
-        time.sleep(2)  # Keep the relay off for 5 seconds
+        time.sleep(0.1)  # Keep the relay off for 5 seconds
 
 except KeyboardInterrupt:
     print("Program interrupted")

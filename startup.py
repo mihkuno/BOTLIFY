@@ -1,42 +1,40 @@
+#!/home/botlify/BOTLIFY/venv/bin/python
+
 import os
 import time
-import threading
+import subprocess
+import sys
 
-print("""
+import display
 
-██╗███╗   ██╗██╗████████╗██╗ █████╗ ██╗     ██╗███████╗██╗███╗   ██╗ ██████╗
-██║████╗  ██║██║╚══██╔══╝██║██╔══██╗██║     ██║╚══███╔╝██║████╗  ██║██╔════╝
-██║██╔██╗ ██║██║   ██║   ██║███████║██║     ██║  ███╔╝ ██║██╔██╗ ██║██║  ███╗
-██║██║╚██╗██║██║   ██║   ██║██╔══██║██║     ██║ ███╔╝  ██║██║╚██╗██║██║   ██║
-██║██║ ╚████║██║   ██║   ██║██║  ██║███████╗██║███████╗██║██║ ╚████║╚██████╔╝
-╚═╝╚═╝  ╚═══╝╚═╝   ╚═╝   ╚═╝╚═╝  ╚═╝╚══════╝╚═╝╚══════╝╚═╝╚═╝  ╚═══╝ ╚═════╝
-
-""")
-
-def my_threaded_func(arg, arg2):
-
-    time.sleep(10) # wait for wifi to initialize
-
-    os.system('sudo pigpiod')
-    os.system('sudo nodogsplash')
-
-    print("""
-
-██████╗ ███████╗██████╗ ██╗██████╗ ███████╗ ██████╗████████╗██╗███╗   ██╗ ██████╗
-██╔══██╗██╔════╝██╔══██╗██║██╔══██╗██╔════╝██╔════╝╚══██╔══╝██║████╗  ██║██╔════╝
-██████╔╝█████╗  ██║  ██║██║██████╔╝█████╗  ██║        ██║   ██║██╔██╗ ██║██║  ███╗
-██╔══██╗██╔══╝  ██║  ██║██║██╔══██╗██╔══╝  ██║        ██║   ██║██║╚██╗██║██║   ██║
-██║  ██║███████╗██████╔╝██║██║  ██║███████╗╚██████╗   ██║   ██║██║ ╚████║╚██████╔╝██╗██╗██╗
-╚═╝  ╚═╝╚══════╝╚═════╝ ╚═╝╚═╝  ╚═╝╚══════╝ ╚═════╝   ╚═╝   ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚═╝╚═╝╚═╝
-
-    """)
-
-    time.sleep(5) # some time to read logs
-
-    # after this, run main.py
+def clear_tty1():
+    with open('/dev/tty1', 'w') as tty1:
+        tty1.write('\033c')  # ANSI escape code to reset the terminal
 
 
-thread = threading.Thread(target=my_threaded_func, args=("I'ma", "thread"))
-thread.start()
+def print_to_tty1(message):
+    with open('/dev/tty1', 'w') as tty1:
+        tty1.write(message + '\n')
 
-print("Spun off thread")
+
+
+for i in range(5):
+    display.initializing()
+    time.sleep(5)
+
+
+os.system('sudo pigpiod')
+os.system('sudo nodogsplash')
+
+display.redirecting()
+
+time.sleep(3)
+display.insert_bottle_a()
+
+print_to_tty1('starting main.py')
+
+# Run main.py
+subprocess.run([sys.executable, '/home/botlify/BOTLIFY/main.py'])
+
+# Exit the current script
+sys.exit()

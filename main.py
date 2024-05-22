@@ -1,41 +1,125 @@
-# object detection
+#!/home/botlify/BOTLIFY/venv/bin/python
+
 import os
+import time
+import subprocess
+import sys
+
+# data handler
+import json
+import display
+
+# object detection
 import cv2
 from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
-import supervision as sv
 from ultralytics import YOLO
 
-
-# distance detection
+# Initialize GPIO pins
 import RPi.GPIO as GPIO
 import time
 
+# Voucher generation
+import random
+import string
+
+# wait for 5*5 seconds for hostapd.service to finsh setting up
+for i in range(5):
+    display.initializing()
+    time.sleep(5)
+
+os.system('sudo pigpiod')
+os.system('sudo nodogsplash')
+
 GPIO.setmode(GPIO.BCM)
 
+LED_RELAY_PIN  = 5
 SONIC_VCC_PIN  = 21
 SONIC_TRIG_PIN = 20
 SONIC_ECHO_PIN = 16
 
+GPIO.setup(LED_RELAY_PIN, GPIO.OUT)
 GPIO.setup(SONIC_VCC_PIN, GPIO.OUT)
 GPIO.setup(SONIC_TRIG_PIN, GPIO.OUT)
-GPIO.setup(SONIC_ECHO_PIN, GPIO.IN) 
+GPIO.setup(SONIC_ECHO_PIN, GPIO.IN)
+
 GPIO.output(SONIC_VCC_PIN, True)
 GPIO.output(SONIC_TRIG_PIN, True) # bug fix
+GPIO.output(LED_RELAY_PIN, False) 
 
-time.sleep(0.5)
 
-# servo motor controls
+# Initialize output directory
+output_directory = '/home/botlify/BOTLIFY/output'
+data_file_path = os.path.join(output_directory, 'data.json')
+
+if not os.path.exists(output_directory):
+    os.makedirs(output_directory)
+    
+with open(data_file_path, 'w+') as file:
+    json.dump({"box": [], "label": "", "score": 0, "area": 0, "minutes": 0, "voucher": ""}, file)
+
+# Initialize servo motor controls
 from gpiozero import Servo
 from gpiozero.pins.pigpio import PiGPIOFactory
 from time import sleep
-
 
 SERVO_PIN = 12
 factory = PiGPIOFactory()
 servo = Servo(SERVO_PIN, pin_factory=factory)
 
+# config
+weights_path = '/home/botlify/BOTLIFY/bottle-nano-large-320/weights/best.pt'
+
+# Load the model
+model = YOLO(weights_path) 
+
+
+from multiprocessing import Queue
+import cv2, threading, time
+
+# custom bufferless VideoCapture
+# a bugfix to get the latest frame in cam.read()
+class VideoCapture:
+
+  def __init__(self, name):
+    self.cap = cv2.VideoCapture(name)
+    self.q = Queue()
+    t = threading.Thread(target=self._reader)
+    t.daemon = True
+    t.start()
+
+  # read frames as soon as they are available, keeping only most recent one
+  def _reader(self):
+    while True:
+      ret, frame = self.cap.read()
+      if not ret:
+        break
+      if not self.q.empty():
+        try:
+          self.q.get_nowait()   # discard previous (unprocessed) frame
+        except e:
+          pass
+      self.q.put(frame)
+
+  def read(self):
+    return self.q.get()
+
+# Create a VideoCapture object
+camera_index = 0
+cam = VideoCapture(camera_index)
+
+display.redirecting()
+
+def generate_random_combination():
+    characters = string.ascii_letters + string.digits
+    result = ''
+
+    for _ in range(5):
+        choice = random.choice(characters)
+        result += choice
+
+    return result
 
 
 def setServoPosition(position):
@@ -61,6 +145,9 @@ def getDistance():
     global SONIC_TRIG_PIN
     global SONIC_ECHO_PIN
     
+    pulse_start = 0
+    pulse_end = 0
+    
     GPIO.output(SONIC_TRIG_PIN, True)
     time.sleep(0.00001)
     GPIO.output(SONIC_TRIG_PIN, False)
@@ -78,53 +165,87 @@ def getDistance():
     return distance
 
 
-
-
 def getDetection():
-    
-    # config
-    weights_path = 'yolov8m.pt'
-    camera_index = 0
-
-    # Load the model
-    model = YOLO(weights_path) 
-
-    # Create a VideoCapture object
-    cam = cv2.VideoCapture(camera_index)
-
-    
-    # Check if the camera is opened successfully
-    if not cam.isOpened():
-        print("Error: Could not open camera.")
-        exit()
+    global cam
+    global model
+    global output_directory
+    global data_file_path
+    global LED_RELAY_PIN
     
     # Capture frame-by-frame
-    ret, frame = cam.read()
+    frame = cam.read()
 
-    # Check if the frame was captured successfully
-    if not ret:
-        print("Error: Failed to grab frame")
-        return
+    # Crop the frame    
+    frame          = frame[50:400, 220:440]
+    captured_frame = frame
+
+    results = model.predict(frame, conf=0.77, verbose=False, imgsz=320)
+    output = {}
     
-    results = model.predict(frame, conf=0.35, verbose=False)
-
-    class_names = []
-
-    if len(results[0]) > 0:
-        detections = results[0]
-
-        # put 'results' to annotate all detections instead
-        detections = sv.Detections.from_ultralytics(detections) 
-                            
-        class_names = detections.data['class_name']
+    if len(results) > 0:        
+        result = results[0] # select the first result only
+        boxes = result.boxes.xyxy  # Bounding boxes
+        scores = result.boxes.conf  # Confidence scores
+        labels = result.boxes.cls  # Class labels (indices)
         
-    return class_names
+        print('in the loop', boxes, scores, labels)
 
+        for box, score, label in zip(boxes, scores, labels):
+            label_name = result.names[int(label)]
+            
+            # calculate the area of the bounding box
+            area = (box[2] - box[0]) * (box[3] - box[1])
 
+            # 1000ml  = 28000 cm^2 = 1.5 min
+            # 500ml   = 21000 cm^2 = 1.0 min
+            # 290ml   = 17000 cm^2 = 0.5 min
+            
+            # map the area to the corresponding time
+            minutes = 0
+            if area > 27000:   # <1000ml
+                minutes = 45
+            elif area > 21000: # 500ml
+                minutes = 25
+            else:              # >500ml 
+                minutes = 15
+            print(area, minutes)
+            
+            # Create a dictionary with the same information
+            output = {
+                "box": box.tolist(),
+                "label": label_name,
+                "score": score.item(),
+                "area": area.item(),
+                "minutes": minutes,
+                "voucher": generate_random_combination()
+            }
+            
+            # Read then increment time
+            with open(data_file_path, 'r') as file:
+                data = json.load(file)
+                output['minutes'] += data['minutes']            
+                    
+            # Write the json file
+            with open(data_file_path, 'w') as file:
+                json.dump(output, file)
 
-
-try:    
+            # Draw the bounding box on the captured frame
+            x1, y1, x2, y2 = map(int, box)
+            cv2.rectangle(captured_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            
+            break
     
+        # Save the frame with detections to the output directory
+        captured_frame_path = os.path.join(output_directory, 'frame.jpg')
+        cv2.imwrite(captured_frame_path, captured_frame)
+        
+    return output
+                
+
+time.sleep(3)
+display.insert_bottle_a()
+
+try:        
     print('Start Listening...')
     
     while True:    
@@ -133,7 +254,7 @@ try:
         setServoPosition('mid');        
         
         print('Getting distance...')
-        detection_threshold = 9 # centimeters
+        detection_threshold = 28 # centimeters
         distance = getDistance()
         print('Distance: ', distance)
         
@@ -143,25 +264,37 @@ try:
             print('Set servo position to mid...')    
             setServoPosition('mid');        
         
-            print('Obstruction detected... wait for 1.5 second before checking for detections...')
-            sleep(1.5)
-            print('Getting detection...')
-            
-            detections = getDetection()
-            
-            print('Detections: ', detections)
-            
-            if 'bottle' in detections or 'wine glass' in detections or 'vase' in detections or 'toilet' in detections:
-                print('Bottle detected...')
-                setServoPosition('min');
-            else: 
-                print('No bottle detected...')
-                setServoPosition('max');
-            
-            print('Wait 0.5 seconds...')
-            sleep(0.5)    
-            print('Looping...')
+            display.please_wait()
         
+            print('Wait 1s..')
+            GPIO.output(LED_RELAY_PIN, True) 
+            time.sleep(1)
+            print('Getting detection..')
+            detection = getDetection()
+            print('Detections: ', detection)
+            GPIO.output(LED_RELAY_PIN, False) 
+            
+            if len(detection) > 0:
+                print('Bottle detected...')
+                setServoPosition('max');
+            else: 
+                display.invalid()
+                print('No bottle detected...')
+                setServoPosition('min');
+            
+            print('Wait 1 second...')
+            sleep(1)    
+            print('Looping...')
+            
+            # Read then increment time
+            with open(data_file_path, 'r') as file:
+                data = json.load(file)
+            
+                if data['voucher'] == "":
+                    display.insert_bottle_a()
+                else:
+                    display.insert_bottle_b(data['voucher'], data['minutes'])
+                    
             
 except Exception as e:
     print("Stopped by user, cleaning up...", e)
