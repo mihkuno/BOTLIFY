@@ -106,7 +106,7 @@ class VideoCapture:
     return self.q.get()
 
 # Create a VideoCapture object
-camera_index = 0
+camera_index = -1
 cam = VideoCapture(camera_index)
 
 display.redirecting()
@@ -242,60 +242,68 @@ def getDetection():
     return output
                 
 
-time.sleep(3)
+time.sleep(1)
 display.insert_bottle_a()
 
-try:        
-    print('Start Listening...')
-    
-    while True:    
-    
-        print('Set servo position to mid...')    
-        setServoPosition('mid');        
+def main():
+    try:        
+        print('Start Listening...')
         
-        print('Getting distance...')
-        detection_threshold = 28 # centimeters
-        distance = getDistance()
-        print('Distance: ', distance)
-        
-        sleep(0.1)
-        
-        if distance < detection_threshold:            
+        while True:    
+            
             print('Set servo position to mid...')    
             setServoPosition('mid');        
-        
-            display.please_wait()
-        
-            print('Wait 1s..')
-            GPIO.output(LED_RELAY_PIN, True) 
-            time.sleep(1)
-            print('Getting detection..')
-            detection = getDetection()
-            print('Detections: ', detection)
-            GPIO.output(LED_RELAY_PIN, False) 
             
-            if len(detection) > 0:
-                print('Bottle detected...')
-                setServoPosition('max');
-            else: 
-                display.invalid()
-                print('No bottle detected...')
-                setServoPosition('min');
+            print('Getting distance...')
+            detection_threshold = 28 # centimeters
+            distance = getDistance()
+            print('Distance: ', distance)
             
-            print('Wait 1 second...')
-            sleep(1)    
-            print('Looping...')
+            sleep(0.1)
             
-            # Read then increment time
-            with open(data_file_path, 'r') as file:
-                data = json.load(file)
+            if distance < detection_threshold:            
+                print('Set servo position to mid...')    
+                setServoPosition('mid');        
             
-                if data['voucher'] == "":
-                    display.insert_bottle_a()
-                else:
-                    display.insert_bottle_b(data['voucher'], data['minutes'])
-                    
+                display.please_wait()
             
-except Exception as e:
-    print("Stopped by user, cleaning up...", e)
-    GPIO.cleanup()
+                print('Wait 1s..')
+                GPIO.output(LED_RELAY_PIN, True) 
+                time.sleep(1)
+                print('Getting detection..')
+                detection = getDetection()
+                time.sleep(0.1)
+                print('Detections: ', detection)
+                GPIO.output(LED_RELAY_PIN, False) 
+                time.sleep(0.1)
+                
+                if len(detection) > 0:
+                    print('Bottle detected...')
+                    setServoPosition('max');
+                else: 
+                    display.invalid()
+                    print('No bottle detected...')
+                    setServoPosition('min');
+                
+                print('Wait 1 second...')
+                sleep(1)    
+                print('Looping...')
+                
+                # Read then increment time
+                with open(data_file_path, 'r') as file:
+                    data = json.load(file)
+                
+                    if data['voucher'] == "":
+                        display.insert_bottle_a()
+                    else:
+                        display.insert_bottle_b(data['voucher'], data['minutes'])
+                
+            
+    except Exception as e:
+        print("Stopped by user, cleaning up...", e)
+        display.print_to_tty1(e)
+        GPIO.cleanup()
+        time.sleep(5)
+        display.print_to_tty1("Restarting...")
+        time.sleep(2)
+        main()
