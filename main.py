@@ -98,7 +98,7 @@ class VideoCapture:
       if not self.q.empty():
         try:
           self.q.get_nowait()   # discard previous (unprocessed) frame
-        except e:
+        except Exception as e:
           pass
       self.q.put(frame)
 
@@ -240,8 +240,8 @@ def getDetection():
         cv2.imwrite(captured_frame_path, captured_frame)
         
     return output
-                
-
+              
+            
 time.sleep(1)
 display.insert_bottle_a()
 
@@ -277,17 +277,44 @@ def main():
                 GPIO.output(LED_RELAY_PIN, False) 
                 time.sleep(0.1)
                 
+                
+                isBottle = False
                 if len(detection) > 0:
+                    isBottle = True
                     print('Bottle detected...')
                     setServoPosition('max');
                 else: 
+                    isBottle = False
                     display.invalid()
                     print('No bottle detected...')
                     setServoPosition('min');
+                     
+            
+                # obstruction detection
+                # second check distance to see if bottle is dropped
+                distance = getDistance()
+                while distance < detection_threshold:      
+                    print('Set servo position to mid...')    
+                    setServoPosition('mid');   
+                    
+                    print('Obstruction:', distance)
+                    display.print_to_tty1("Obstruction! Please contact the administrator.")
                 
-                print('Wait 1 second...')
-                sleep(1)    
-                print('Looping...')
+                    if isBottle:
+                        for i in range(3):
+                            setServoPosition('mid');   
+                            time.sleep(0.2)
+                            setServoPosition('max');
+                            time.sleep(0.2)
+                    else:
+                        for i in range(3):
+                            setServoPosition('mid');   
+                            time.sleep(0.2)
+                            setServoPosition('min');
+                            time.sleep(0.2)
+                            
+                    time.sleep(1)
+                    distance = getDistance()
                 
                 # Read then increment time
                 with open(data_file_path, 'r') as file:
@@ -297,9 +324,12 @@ def main():
                         display.insert_bottle_a()
                     else:
                         display.insert_bottle_b(data['voucher'], data['minutes'])
-                
+
+                print('Wait 1 second...')
+                sleep(1)    
             
     except Exception as e:
+        # restart the program in case of error
         print("Stopped by user, cleaning up...", e)
         display.print_to_tty1(e)
         GPIO.cleanup()
@@ -307,3 +337,6 @@ def main():
         display.print_to_tty1("Restarting...")
         time.sleep(2)
         main()
+        
+          
+main()
