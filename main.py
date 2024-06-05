@@ -10,9 +10,9 @@ import json
 import display
 
 # wait for 5*5 seconds for hostapd.service to finsh setting up
-# for i in range(5):
-#     display.initializing()
-#     time.sleep(5)
+for i in range(5):
+    display.initializing()
+    time.sleep(5)
 
 # image classification
 import cv2
@@ -74,7 +74,7 @@ servo = Servo(SERVO_PIN, pin_factory=factory)
 
 
 
-model_path = "model.tflite"
+model_path = "/home/botlify/BOTLIFY/model.tflite"
 
 BaseOptions = mp.tasks.BaseOptions
 ImageClassifier = mp.tasks.vision.ImageClassifier
