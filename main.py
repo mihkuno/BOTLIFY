@@ -9,12 +9,21 @@ import sys
 import json
 import display
 
-# object detection
+# wait for 5*5 seconds for hostapd.service to finsh setting up
+# for i in range(5):
+#     display.initializing()
+#     time.sleep(5)
+
+# image classification
 import cv2
-from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
-from ultralytics import YOLO
+import mediapipe as mp
+from datetime import datetime, timedelta
+
+# Bufferless VideoCapture
+from multiprocessing import Queue
+import threading, time
 
 # Initialize GPIO pins
 import RPi.GPIO as GPIO
@@ -23,11 +32,6 @@ import time
 # Voucher generation
 import random
 import string
-
-# wait for 5*5 seconds for hostapd.service to finsh setting up
-for i in range(5):
-    display.initializing()
-    time.sleep(5)
 
 os.system('sudo pigpiod')
 os.system('sudo nodogsplash')
@@ -57,7 +61,7 @@ if not os.path.exists(output_directory):
     os.makedirs(output_directory)
     
 with open(data_file_path, 'w+') as file:
-    json.dump({"box": [], "label": "", "score": 0, "area": 0, "minutes": 0, "voucher": ""}, file)
+    json.dump({"box": [], "label": "", "score": 0, "diagonal": 0, "minutes": 0, "voucher": ""}, file)
 
 # Initialize servo motor controls
 from gpiozero import Servo
@@ -68,15 +72,22 @@ SERVO_PIN = 12
 factory = PiGPIOFactory()
 servo = Servo(SERVO_PIN, pin_factory=factory)
 
-# config
-weights_path = '/home/botlify/BOTLIFY/bottle-nano-large-320/weights/best.pt'
-
-# Load the model
-model = YOLO(weights_path) 
 
 
-from multiprocessing import Queue
-import cv2, threading, time
+model_path = "model.tflite"
+
+BaseOptions = mp.tasks.BaseOptions
+ImageClassifier = mp.tasks.vision.ImageClassifier
+ImageClassifierOptions = mp.tasks.vision.ImageClassifierOptions
+VisionRunningMode = mp.tasks.vision.RunningMode
+ImageFormat = mp.ImageFormat
+
+options = ImageClassifierOptions(
+    base_options=BaseOptions(model_asset_path=model_path),
+    max_results=5,
+    running_mode=VisionRunningMode.IMAGE
+)
+
 
 # custom bufferless VideoCapture
 # a bugfix to get the latest frame in cam.read()
@@ -165,9 +176,8 @@ def getDistance():
     return distance
 
 
-def getDetection():
+def getDetection(classifier):
     global cam
-    global model
     global output_directory
     global data_file_path
     global LED_RELAY_PIN
@@ -176,167 +186,188 @@ def getDetection():
     frame = cam.read()
 
     # Crop the frame    
-    frame          = frame[50:400, 220:440]
-    captured_frame = frame
-
-    results = model.predict(frame, conf=0.77, verbose=False, imgsz=320)
-    output = {}
+    cropped_image = frame[60:355, 260:440]
     
-    if len(results) > 0:        
-        result = results[0] # select the first result only
-        boxes = result.boxes.xyxy  # Bounding boxes
-        scores = result.boxes.conf  # Confidence scores
-        labels = result.boxes.cls  # Class labels (indices)
+    # Convert the BGR image to RGB (MediaPipe expects RGB format)
+    rgb_image = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2RGB)
+
+    # Convert the image to a MediaPipe Image object
+    mp_image = mp.Image(image_format=ImageFormat.SRGB, data=rgb_image)
+
+    # Perform image classification on the provided single image.
+    classification_result = classifier.classify(mp_image)
+
+    # Print classification results
+    result = classification_result.classifications[0].categories[0]
+    category_name = result.category_name
+    score = round(result.score, 2)
+    
+    output = None
+    
+    if category_name == 'plastic':
         
-        print('in the loop', boxes, scores, labels)
+        blurred_image = cv2.GaussianBlur(cropped_image, (13, 13), 0)
+        grayed_image  = cv2.cvtColor(blurred_image, cv2.COLOR_BGR2GRAY)
+        canny_image = cv2.Canny(grayed_image, 0, 30)
+        
+        kernel = np.ones((5, 5), np.uint8)
+        dilate_image = cv2.dilate(canny_image, kernel, iterations=1)
 
-        for box, score, label in zip(boxes, scores, labels):
-            label_name = result.names[int(label)]
+        contours, hierarchy = cv2.findContours(dilate_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        max_area = 0
+        max_cnt = []
+        for index, cnt in enumerate(contours):
             
-            # calculate the area of the bounding box
-            area = (box[2] - box[0]) * (box[3] - box[1])
+            area = cv2.contourArea(cnt)
+            if area > max_area:
+                max_area = area
+                max_cnt = cnt
+        
+        contour_image = cv2.drawContours(cropped_image, max_cnt, -1, (0, 255, 0), 3)
+        
+        peri = cv2.arcLength(max_cnt, True)
+        approx = cv2.approxPolyDP(max_cnt, 0.02 * peri, True)
+        x, y, w, h = cv2.boundingRect(approx)
+        diagonal = int(np.sqrt(w**2 + h**2))
 
-            # 1000ml  = 28000 cm^2 = 1.5 min
-            # 500ml   = 21000 cm^2 = 1.0 min
-            # 290ml   = 17000 cm^2 = 0.5 min
-            
-            # map the area to the corresponding time
-            minutes = 0
-            if area > 27000:   # <1000ml
-                minutes = 45
-            elif area > 21000: # 500ml
-                minutes = 25
-            else:              # >500ml 
-                minutes = 15
-            print(area, minutes)
-            
-            # Create a dictionary with the same information
-            output = {
-                "box": box.tolist(),
-                "label": label_name,
-                "score": score.item(),
-                "area": area.item(),
-                "minutes": minutes,
-                "voucher": generate_random_combination()
-            }
-            
-            # Read then increment time
-            with open(data_file_path, 'r') as file:
-                data = json.load(file)
-                output['minutes'] += data['minutes']            
-                    
-            # Write the json file
-            with open(data_file_path, 'w') as file:
-                json.dump(output, file)
-
-            # Draw the bounding box on the captured frame
-            x1, y1, x2, y2 = map(int, box)
-            cv2.rectangle(captured_frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            
-            break
     
-        # Save the frame with detections to the output directory
+        # map the area to the corresponding time
+        minutes = 0
+        if diagonal > 280:   # <1000ml
+            minutes = 45
+        elif diagonal > 240: # 500ml
+            minutes = 25
+        else:                # >500ml
+            minutes = 15
+        print(diagonal, minutes)
+            
+        # Create a dictionary with the same information
+        output = {
+            "box": [x,y,w,h],
+            "label": category_name,
+            "score": score,
+            "diagonal": diagonal,
+            "minutes": minutes,
+            "voucher": generate_random_combination()
+        }
+            
+        # Read then increment time
+        with open(data_file_path, 'r') as file:
+            data = json.load(file)
+            output['minutes'] += data['minutes']            
+                
+        # Write the json file
+        with open(data_file_path, 'w') as file:
+            json.dump(output, file)
+
+        # Save the frame with detections to the output directory        
+        cv2.line(contour_image, (x, y), (x+w, y+h), (0, 0, 255), 2)        
+        cv2.rectangle(contour_image, (x, y), (x+w, y+h), (255, 0, 0), 2)
+        cv2.putText(contour_image, f'Area: {int(max_area)}', (x, y+30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+        cv2.putText(contour_image, f'Diagonal: {diagonal}', (x, y+60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+
         captured_frame_path = os.path.join(output_directory, 'frame.jpg')
-        cv2.imwrite(captured_frame_path, captured_frame)
+        cv2.imwrite(captured_frame_path, contour_image)
         
     return output
+    
               
-            
-time.sleep(1)
-display.insert_bottle_a()
-
 def main():
-    try:        
-        print('Start Listening...')
-        
-        while True:    
+    with ImageClassifier.create_from_options(options) as classifier:
+        try:        
+            print('Start Listening...')
             
-            print('Set servo position to mid...')    
-            setServoPosition('mid');        
-            
-            print('Getting distance...')
-            detection_threshold = 28 # centimeters
-            distance = getDistance()
-            print('Distance: ', distance)
-            
-            sleep(0.1)
-            
-            if distance < detection_threshold:            
+            while True:    
+                
                 print('Set servo position to mid...')    
                 setServoPosition('mid');        
-            
-                display.please_wait()
-            
-                print('Wait 1s..')
-                GPIO.output(LED_RELAY_PIN, True) 
-                time.sleep(1)
-                print('Getting detection..')
-                detection = getDetection()
-                time.sleep(0.1)
-                print('Detections: ', detection)
-                GPIO.output(LED_RELAY_PIN, False) 
-                time.sleep(0.1)
                 
-                
-                isBottle = False
-                if len(detection) > 0:
-                    isBottle = True
-                    print('Bottle detected...')
-                    setServoPosition('max');
-                else: 
-                    isBottle = False
-                    display.invalid()
-                    print('No bottle detected...')
-                    setServoPosition('min');
-                     
-            
-                # obstruction detection
-                # second check distance to see if bottle is dropped
+                print('Getting distance...')
+                detection_threshold = 28 # centimeters
                 distance = getDistance()
-                while distance < detection_threshold:      
+                print('Distance: ', distance)
+                
+                sleep(0.1)
+                
+                if distance < detection_threshold:            
                     print('Set servo position to mid...')    
-                    setServoPosition('mid');   
+                    setServoPosition('mid');        
+                
+                    display.please_wait()
+                
+                    print('Wait 1.2s..')
+                    GPIO.output(LED_RELAY_PIN, True) 
+                    time.sleep(1.2)
+                    print('Getting detection..')
+                    detection = getDetection(classifier)
+                    time.sleep(0.1)
+                    print('Detections: ', detection)
+                    GPIO.output(LED_RELAY_PIN, False) 
+                    time.sleep(0.1)
                     
-                    print('Obstruction:', distance)
-                    display.print_to_tty1("Obstruction! Please contact the administrator.")
+                    isBottle = False
+                    if detection == None:
+                        isBottle = False
+                        display.invalid()
+                        print('No bottle detected...')
+                        setServoPosition('min');
+                        time.sleep(0.5)
+                    else: 
+                        isBottle = True
+                        print('Bottle detected...')
+                        setServoPosition('max');
+                        
                 
-                    if isBottle:
-                        for i in range(3):
-                            setServoPosition('mid');   
-                            time.sleep(0.2)
-                            setServoPosition('max');
-                            time.sleep(0.2)
-                    else:
-                        for i in range(3):
-                            setServoPosition('mid');   
-                            time.sleep(0.2)
-                            setServoPosition('min');
-                            time.sleep(0.2)
-                            
-                    time.sleep(1)
+                    # obstruction detection
+                    # second check distance to see if bottle is dropped
                     distance = getDistance()
-                
-                # Read then increment time
-                with open(data_file_path, 'r') as file:
-                    data = json.load(file)
-                
-                    if data['voucher'] == "":
-                        display.insert_bottle_a()
-                    else:
-                        display.insert_bottle_b(data['voucher'], data['minutes'])
+                    while distance < detection_threshold:      
+                        print('Set servo position to mid...')    
+                        setServoPosition('mid');   
+                        
+                        print('Obstruction:', distance)
+                        display.print_to_tty1("Obstruction! Please contact the administrator.")
+                    
+                        if isBottle:
+                            for i in range(3):
+                                setServoPosition('mid');   
+                                time.sleep(0.2)
+                                setServoPosition('max');
+                                time.sleep(0.2)
+                        else:
+                            for i in range(3):
+                                setServoPosition('mid');   
+                                time.sleep(0.2)
+                                setServoPosition('min');
+                                time.sleep(0.2)
+                                
+                        time.sleep(1)
+                        distance = getDistance()
+                    
+                    # Read then increment time
+                    with open(data_file_path, 'r') as file:
+                        data = json.load(file)
+                    
+                        if data['voucher'] == "":
+                            display.insert_bottle_a()
+                        else:
+                            display.insert_bottle_b(data['voucher'], data['minutes'])
 
-                print('Wait 1 second...')
-                sleep(1)    
+                    print('Wait 1 second...')
+                    sleep(1)    
+                
+        except Exception as e:
+            # restart the program in case of error
+            print("Stopped by user, cleaning up...", e)
+            display.print_to_tty1(e)
+            GPIO.cleanup()
+            time.sleep(5)
+            display.print_to_tty1("Restarting...")
+            time.sleep(2)
+            main()
             
-    except Exception as e:
-        # restart the program in case of error
-        print("Stopped by user, cleaning up...", e)
-        display.print_to_tty1(e)
-        GPIO.cleanup()
-        time.sleep(5)
-        display.print_to_tty1("Restarting...")
-        time.sleep(2)
-        main()
-        
-          
+
+time.sleep(1)
+display.insert_bottle_a()          
 main()

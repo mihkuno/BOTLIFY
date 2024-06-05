@@ -1,0 +1,361 @@
+(venv) justeengg@blackjack-training:~/test$ python train.py 
+2024-06-04 06:06:44.008630: I tensorflow/core/util/port.cc:113] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2024-06-04 06:06:44.062355: E external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:9261] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+2024-06-04 06:06:44.062404: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:607] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+2024-06-04 06:06:44.064008: E external/local_xla/xla/stream_executor/cuda/cuda_blas.cc:1515] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2024-06-04 06:06:44.072425: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2024-06-04 06:06:45.017558: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+/home/justeengg/test/venv/lib/python3.10/site-packages/tensorflow_addons/utils/tfa_eol_msg.py:23: UserWarning: 
+
+TensorFlow Addons (TFA) has ended development and introduction of new features.
+TFA has entered a minimal maintenance and release mode until a planned end of life in May 2024.
+Please modify downstream libraries to take dependencies from other repositories in our TensorFlow community (e.g. Keras, Keras-CV, and Keras-NLP). 
+
+For more information see: https://github.com/tensorflow/addons/issues/2807 
+
+  warnings.warn(
+Num GPUs Available:  4
+tensorflow version 2.15.1
+./dataset
+['paper', 'plastic', 'general', 'organic', 'metal']
+2024-06-04 06:06:48.895628: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1929] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 20758 MB memory:  -> device: 0, name: NVIDIA L4, pci bus id: 0000:00:03.0, compute capability: 8.9
+2024-06-04 06:06:48.897633: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1929] Created device /job:localhost/replica:0/task:0/device:GPU:1 with 20758 MB memory:  -> device: 1, name: NVIDIA L4, pci bus id: 0000:00:04.0, compute capability: 8.9
+2024-06-04 06:06:48.899447: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1929] Created device /job:localhost/replica:0/task:0/device:GPU:2 with 20758 MB memory:  -> device: 2, name: NVIDIA L4, pci bus id: 0000:00:05.0, compute capability: 8.9
+2024-06-04 06:06:48.901203: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1929] Created device /job:localhost/replica:0/task:0/device:GPU:3 with 20758 MB memory:  -> device: 3, name: NVIDIA L4, pci bus id: 0000:00:06.0, compute capability: 8.9
+WARNING:tensorflow:`period` argument is deprecated. Please use `save_freq` to specify the frequency in number of batches seen.
+Model: "sequential"
+_________________________________________________________________
+ Layer (type)                Output Shape              Param #   
+=================================================================
+ keras_layer (KerasLayer)    (None, 1280)              11837936  
+                                                                 
+ dropout (Dropout)           (None, 1280)              0         
+                                                                 
+ dense (Dense)               (None, 5)                 6405      
+                                                                 
+=================================================================
+Total params: 11844341 (45.18 MB)
+Trainable params: 6405 (25.02 KB)
+Non-trainable params: 11837936 (45.16 MB)
+_________________________________________________________________
+None
+WARNING:tensorflow:From /home/justeengg/test/venv/lib/python3.10/site-packages/tensorflow/python/util/dispatch.py:1260: resize_bicubic (from tensorflow.python.ops.image_ops_impl) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use `tf.image.resize(...method=ResizeMethod.BICUBIC...)` instead.
+WARNING:tensorflow:From /home/justeengg/test/venv/lib/python3.10/site-packages/tensorflow/python/util/dispatch.py:1260: resize_bicubic (from tensorflow.python.ops.image_ops_impl) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use `tf.image.resize(...method=ResizeMethod.BICUBIC...)` instead.
+2024-06-04 06:06:54.722225: I external/local_tsl/tsl/platform/default/subprocess.cc:304] Start cannot spawn child process: No such file or directory
+Epoch 1/100
+2024-06-04 06:06:58.625887: I external/local_xla/xla/stream_executor/cuda/cuda_dnn.cc:454] Loaded cuDNN version 8904
+2024-06-04 06:06:58.736203: I external/local_tsl/tsl/platform/default/subprocess.cc:304] Start cannot spawn child process: No such file or directory
+2024-06-04 06:06:59.809116: I external/local_xla/xla/service/service.cc:168] XLA service 0x734a455e3d80 initialized for platform CUDA (this does not guarantee that XLA will be used). Devices:
+2024-06-04 06:06:59.809155: I external/local_xla/xla/service/service.cc:176]   StreamExecutor device (0): NVIDIA L4, Compute Capability 8.9
+2024-06-04 06:06:59.809163: I external/local_xla/xla/service/service.cc:176]   StreamExecutor device (1): NVIDIA L4, Compute Capability 8.9
+2024-06-04 06:06:59.809173: I external/local_xla/xla/service/service.cc:176]   StreamExecutor device (2): NVIDIA L4, Compute Capability 8.9
+2024-06-04 06:06:59.809182: I external/local_xla/xla/service/service.cc:176]   StreamExecutor device (3): NVIDIA L4, Compute Capability 8.9
+2024-06-04 06:06:59.815694: I tensorflow/compiler/mlir/tensorflow/utils/dump_mlir_util.cc:269] disabling MLIR crash reproducer, set env var `MLIR_CRASH_REPRODUCER_DIRECTORY` to enable.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1717481219.899360   29959 device_compiler.h:186] Compiled cluster using XLA!  This line is logged at most once for the lifetime of the process.
+398/398 [==============================] - 22s 44ms/step - loss: 1.5230 - accuracy: 0.3427 - val_loss: 1.1791 - val_accuracy: 0.6604
+Epoch 2/100
+398/398 [==============================] - 17s 42ms/step - loss: 1.1128 - accuracy: 0.6332 - val_loss: 0.8447 - val_accuracy: 0.7881
+Epoch 3/100
+398/398 [==============================] - 16s 41ms/step - loss: 0.9506 - accuracy: 0.7193 - val_loss: 0.7494 - val_accuracy: 0.8413
+Epoch 4/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.8962 - accuracy: 0.7475 - val_loss: 0.7162 - val_accuracy: 0.8583
+Epoch 5/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.8572 - accuracy: 0.7731 - val_loss: 0.6914 - val_accuracy: 0.8817
+Epoch 6/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.8527 - accuracy: 0.7691 - val_loss: 0.6698 - val_accuracy: 0.8899
+Epoch 7/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.8475 - accuracy: 0.7749 - val_loss: 0.6647 - val_accuracy: 0.8934
+Epoch 8/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.8313 - accuracy: 0.7867 - val_loss: 0.6562 - val_accuracy: 0.8981
+Epoch 9/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.8265 - accuracy: 0.7887 - val_loss: 0.6459 - val_accuracy: 0.8999
+Epoch 10/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.8147 - accuracy: 0.7950 - val_loss: 0.6401 - val_accuracy: 0.8993
+Epoch 11/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.8156 - accuracy: 0.7935 - val_loss: 0.6346 - val_accuracy: 0.9005
+Epoch 12/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.8316 - accuracy: 0.7832 - val_loss: 0.6296 - val_accuracy: 0.9081
+Epoch 13/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.8015 - accuracy: 0.8020 - val_loss: 0.6279 - val_accuracy: 0.9093
+Epoch 14/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.8044 - accuracy: 0.7995 - val_loss: 0.6261 - val_accuracy: 0.9087
+Epoch 15/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.8042 - accuracy: 0.8000 - val_loss: 0.6254 - val_accuracy: 0.9104
+Epoch 16/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.8179 - accuracy: 0.7927 - val_loss: 0.6221 - val_accuracy: 0.9128
+Epoch 17/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.8016 - accuracy: 0.8085 - val_loss: 0.6152 - val_accuracy: 0.9133
+Epoch 18/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7829 - accuracy: 0.8108 - val_loss: 0.6125 - val_accuracy: 0.9122
+Epoch 19/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7929 - accuracy: 0.7995 - val_loss: 0.6145 - val_accuracy: 0.9157
+Epoch 20/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7805 - accuracy: 0.8103 - val_loss: 0.6110 - val_accuracy: 0.9169
+Epoch 21/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7773 - accuracy: 0.8143 - val_loss: 0.6058 - val_accuracy: 0.9139
+Epoch 22/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7984 - accuracy: 0.7960 - val_loss: 0.6025 - val_accuracy: 0.9192
+Epoch 23/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7711 - accuracy: 0.8211 - val_loss: 0.6069 - val_accuracy: 0.9186
+Epoch 24/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7740 - accuracy: 0.8146 - val_loss: 0.5991 - val_accuracy: 0.9204
+Epoch 25/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7723 - accuracy: 0.8186 - val_loss: 0.6091 - val_accuracy: 0.9210
+Epoch 26/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7703 - accuracy: 0.8216 - val_loss: 0.6013 - val_accuracy: 0.9210
+Epoch 27/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7820 - accuracy: 0.8123 - val_loss: 0.5974 - val_accuracy: 0.9204
+Epoch 28/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7718 - accuracy: 0.8209 - val_loss: 0.5974 - val_accuracy: 0.9204
+Epoch 29/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7770 - accuracy: 0.8111 - val_loss: 0.6009 - val_accuracy: 0.9210
+Epoch 30/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7793 - accuracy: 0.8186 - val_loss: 0.5953 - val_accuracy: 0.9239
+Epoch 31/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7677 - accuracy: 0.8178 - val_loss: 0.5978 - val_accuracy: 0.9245
+Epoch 32/100
+398/398 [==============================] - 17s 43ms/step - loss: 0.7704 - accuracy: 0.8178 - val_loss: 0.5946 - val_accuracy: 0.9204
+Epoch 33/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7732 - accuracy: 0.8111 - val_loss: 0.5919 - val_accuracy: 0.9239
+Epoch 34/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7620 - accuracy: 0.8206 - val_loss: 0.5908 - val_accuracy: 0.9245
+Epoch 35/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7725 - accuracy: 0.8171 - val_loss: 0.5985 - val_accuracy: 0.9215
+Epoch 36/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7724 - accuracy: 0.8093 - val_loss: 0.5912 - val_accuracy: 0.9245
+Epoch 37/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7673 - accuracy: 0.8171 - val_loss: 0.5889 - val_accuracy: 0.9268
+Epoch 38/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7734 - accuracy: 0.8111 - val_loss: 0.5915 - val_accuracy: 0.9245
+Epoch 39/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7659 - accuracy: 0.8181 - val_loss: 0.5946 - val_accuracy: 0.9239
+Epoch 40/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7602 - accuracy: 0.8266 - val_loss: 0.5957 - val_accuracy: 0.9256
+Epoch 41/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7781 - accuracy: 0.8191 - val_loss: 0.5938 - val_accuracy: 0.9262
+Epoch 42/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7572 - accuracy: 0.8274 - val_loss: 0.5909 - val_accuracy: 0.9239
+Epoch 43/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7589 - accuracy: 0.8224 - val_loss: 0.5908 - val_accuracy: 0.9239
+Epoch 44/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7768 - accuracy: 0.8093 - val_loss: 0.5854 - val_accuracy: 0.9274
+Epoch 45/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7603 - accuracy: 0.8289 - val_loss: 0.5874 - val_accuracy: 0.9251
+Epoch 46/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7680 - accuracy: 0.8153 - val_loss: 0.5869 - val_accuracy: 0.9274
+Epoch 47/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7636 - accuracy: 0.8216 - val_loss: 0.5930 - val_accuracy: 0.9233
+Epoch 48/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7567 - accuracy: 0.8317 - val_loss: 0.5872 - val_accuracy: 0.9245
+Epoch 49/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7677 - accuracy: 0.8239 - val_loss: 0.5818 - val_accuracy: 0.9286
+Epoch 50/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7526 - accuracy: 0.8359 - val_loss: 0.5830 - val_accuracy: 0.9286
+Epoch 51/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7633 - accuracy: 0.8231 - val_loss: 0.5855 - val_accuracy: 0.9280
+Epoch 52/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7585 - accuracy: 0.8334 - val_loss: 0.5845 - val_accuracy: 0.9303
+Epoch 53/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7561 - accuracy: 0.8286 - val_loss: 0.5844 - val_accuracy: 0.9292
+Epoch 54/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7607 - accuracy: 0.8231 - val_loss: 0.5862 - val_accuracy: 0.9292
+Epoch 55/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7497 - accuracy: 0.8342 - val_loss: 0.5853 - val_accuracy: 0.9309
+Epoch 56/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7593 - accuracy: 0.8251 - val_loss: 0.5794 - val_accuracy: 0.9315
+Epoch 57/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7627 - accuracy: 0.8251 - val_loss: 0.5826 - val_accuracy: 0.9309
+Epoch 58/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7530 - accuracy: 0.8244 - val_loss: 0.5835 - val_accuracy: 0.9286
+Epoch 59/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7516 - accuracy: 0.8349 - val_loss: 0.5845 - val_accuracy: 0.9309
+Epoch 60/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7658 - accuracy: 0.8209 - val_loss: 0.5828 - val_accuracy: 0.9309
+Epoch 61/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7495 - accuracy: 0.8322 - val_loss: 0.5826 - val_accuracy: 0.9315
+Epoch 62/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7663 - accuracy: 0.8251 - val_loss: 0.5847 - val_accuracy: 0.9344
+Epoch 63/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7654 - accuracy: 0.8276 - val_loss: 0.5915 - val_accuracy: 0.9297
+Epoch 64/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7588 - accuracy: 0.8296 - val_loss: 0.5801 - val_accuracy: 0.9303
+Epoch 65/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7598 - accuracy: 0.8286 - val_loss: 0.5828 - val_accuracy: 0.9344
+Epoch 66/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7693 - accuracy: 0.8294 - val_loss: 0.5816 - val_accuracy: 0.9321
+Epoch 67/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7580 - accuracy: 0.8281 - val_loss: 0.5790 - val_accuracy: 0.9356
+Epoch 68/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7492 - accuracy: 0.8332 - val_loss: 0.5842 - val_accuracy: 0.9338
+Epoch 69/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7538 - accuracy: 0.8344 - val_loss: 0.5846 - val_accuracy: 0.9297
+Epoch 70/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7492 - accuracy: 0.8347 - val_loss: 0.5797 - val_accuracy: 0.9327
+Epoch 71/100
+398/398 [==============================] - 17s 43ms/step - loss: 0.7431 - accuracy: 0.8334 - val_loss: 0.5796 - val_accuracy: 0.9338
+Epoch 72/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7582 - accuracy: 0.8274 - val_loss: 0.5805 - val_accuracy: 0.9344
+Epoch 73/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7555 - accuracy: 0.8329 - val_loss: 0.5777 - val_accuracy: 0.9356
+Epoch 74/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7542 - accuracy: 0.8339 - val_loss: 0.5827 - val_accuracy: 0.9333
+Epoch 75/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7541 - accuracy: 0.8344 - val_loss: 0.5825 - val_accuracy: 0.9338
+Epoch 76/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7621 - accuracy: 0.8236 - val_loss: 0.5843 - val_accuracy: 0.9327
+Epoch 77/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7579 - accuracy: 0.8256 - val_loss: 0.5792 - val_accuracy: 0.9315
+Epoch 78/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7540 - accuracy: 0.8279 - val_loss: 0.5832 - val_accuracy: 0.9350
+Epoch 79/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7438 - accuracy: 0.8357 - val_loss: 0.5825 - val_accuracy: 0.9368
+Epoch 80/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7582 - accuracy: 0.8309 - val_loss: 0.5887 - val_accuracy: 0.9321
+Epoch 81/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7566 - accuracy: 0.8299 - val_loss: 0.5853 - val_accuracy: 0.9309
+Epoch 82/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7509 - accuracy: 0.8364 - val_loss: 0.5807 - val_accuracy: 0.9344
+Epoch 83/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7562 - accuracy: 0.8324 - val_loss: 0.5805 - val_accuracy: 0.9315
+Epoch 84/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7596 - accuracy: 0.8317 - val_loss: 0.5807 - val_accuracy: 0.9315
+Epoch 85/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7479 - accuracy: 0.8304 - val_loss: 0.5811 - val_accuracy: 0.9333
+Epoch 86/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7534 - accuracy: 0.8327 - val_loss: 0.5844 - val_accuracy: 0.9297
+Epoch 87/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7617 - accuracy: 0.8291 - val_loss: 0.5833 - val_accuracy: 0.9303
+Epoch 88/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7515 - accuracy: 0.8339 - val_loss: 0.5851 - val_accuracy: 0.9297
+Epoch 89/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7604 - accuracy: 0.8314 - val_loss: 0.5841 - val_accuracy: 0.9327
+Epoch 90/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7458 - accuracy: 0.8389 - val_loss: 0.5869 - val_accuracy: 0.9315
+Epoch 91/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7449 - accuracy: 0.8389 - val_loss: 0.5838 - val_accuracy: 0.9315
+Epoch 92/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7525 - accuracy: 0.8394 - val_loss: 0.5887 - val_accuracy: 0.9315
+Epoch 93/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7559 - accuracy: 0.8347 - val_loss: 0.5902 - val_accuracy: 0.9292
+Epoch 94/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7535 - accuracy: 0.8349 - val_loss: 0.5863 - val_accuracy: 0.9303
+Epoch 95/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7594 - accuracy: 0.8264 - val_loss: 0.5874 - val_accuracy: 0.9315
+Epoch 96/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7559 - accuracy: 0.8309 - val_loss: 0.5805 - val_accuracy: 0.9309
+Epoch 97/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7673 - accuracy: 0.8234 - val_loss: 0.5857 - val_accuracy: 0.9309
+Epoch 98/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7512 - accuracy: 0.8332 - val_loss: 0.5828 - val_accuracy: 0.9368
+Epoch 99/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7556 - accuracy: 0.8357 - val_loss: 0.5867 - val_accuracy: 0.9333
+Epoch 100/100
+398/398 [==============================] - 17s 42ms/step - loss: 0.7561 - accuracy: 0.8349 - val_loss: 0.5827 - val_accuracy: 0.9321
+2024-06-04 06:35:13.078333: W tensorflow/compiler/mlir/lite/python/tf_tfl_flatbuffer_helpers.cc:378] Ignored output_format.
+2024-06-04 06:35:13.078378: W tensorflow/compiler/mlir/lite/python/tf_tfl_flatbuffer_helpers.cc:381] Ignored drop_control_dependency.
+2024-06-04 06:35:13.078776: I tensorflow/cc/saved_model/reader.cc:83] Reading SavedModel from: /tmp/tmpfber2uq_/saved_model
+2024-06-04 06:35:13.102142: I tensorflow/cc/saved_model/reader.cc:51] Reading meta graph with tags { serve }
+2024-06-04 06:35:13.102182: I tensorflow/cc/saved_model/reader.cc:146] Reading SavedModel debug info (if present) from: /tmp/tmpfber2uq_/saved_model
+2024-06-04 06:35:13.160276: I tensorflow/compiler/mlir/mlir_graph_optimization_pass.cc:388] MLIR V1 optimization pass is not enabled
+2024-06-04 06:35:13.180899: I tensorflow/cc/saved_model/loader.cc:233] Restoring SavedModel bundle.
+2024-06-04 06:35:14.055524: I tensorflow/cc/saved_model/loader.cc:217] Running initialization op on SavedModel bundle at path: /tmp/tmpfber2uq_/saved_model
+2024-06-04 06:35:14.533581: I tensorflow/cc/saved_model/loader.cc:316] SavedModel load for tags { serve }; Status: success: OK. Took 1454806 microseconds.
+Summary on the non-converted ops:
+---------------------------------
+ * Accepted dialects: tfl, builtin, func
+ * Non-Converted Ops: 187, Total Ops 309, % non-converted = 60.52 %
+ * 187 ARITH ops
+
+- arith.constant:  187 occurrences  (f32: 186, i32: 1)
+
+
+
+  (f32: 24)
+  (f32: 61)
+  (f32: 30)
+  (f32: 1)
+  (f32: 1)
+  (f32: 1)
+  (f32: 1)
+(venv) justeengg@blackjack-training:~/test$ ls
+dataset  exported_model  train.py  venv
+(venv) justeengg@blackjack-training:~/test$ cd exported_model/
+(venv) justeengg@blackjack-training:~/test/exported_model$ ls
+checkpoint  metadata.json  model.tflite  summaries
+(venv) justeengg@blackjack-training:~/test/exported_model$ cat meta
+cat: meta: No such file or directory
+(venv) justeengg@blackjack-training:~/test/exported_model$ cat metadata.json 
+{
+  "name": "ImageClassifier",
+  "description": "Identify the most prominent object in the image from a known set of categories.",
+  "subgraph_metadata": [
+    {
+      "input_tensor_metadata": [
+        {
+          "name": "image",
+          "description": "Input image to be processed.",
+          "content": {
+            "content_properties_type": "ImageProperties",
+            "content_properties": {
+              "color_space": "RGB"
+            }
+          },
+          "process_units": [
+            {
+              "options_type": "NormalizationOptions",
+              "options": {
+                "mean": [
+                  0.0
+                ],
+                "std": [
+                  255.0
+                ]
+              }
+            }
+          ],
+          "stats": {
+            "max": [
+              1.0
+            ],
+            "min": [
+              0.0
+            ]
+          }
+        }
+      ],
+      "output_tensor_metadata": [
+        {
+          "name": "score",
+          "description": "Score of the labels respectively.",
+          "content": {
+            "content_properties_type": "FeatureProperties",
+            "content_properties": {
+            }
+          },
+          "stats": {
+            "max": [
+              1.0
+            ],
+            "min": [
+              0.0
+            ]
+          },
+          "associated_files": [
+            {
+              "name": "labels.txt",
+              "description": "Labels for categories that the model can recognize.",
+              "type": "TENSOR_AXIS_LABELS"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "min_parser_version": "1.0.0"
+}

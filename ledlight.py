@@ -14,22 +14,23 @@ GPIO.output(relay_pin, GPIO.HIGH)
 
 time.sleep(1)
 
+GPIO.output(relay_pin, GPIO.HIGH)
 
-try:
-    while True:
-        # Turn the relay on
-        print("Turning relay ON")
-        GPIO.output(relay_pin, True)
-        time.sleep(0.1)  # Keep the relay on for 5 seconds
 
-        # Turn the relay off
-        print("Turning relay OFF")
-        GPIO.output(relay_pin, False)
-        time.sleep(0.1)  # Keep the relay off for 5 seconds
+#try:
+#    while True:
+#        # Turn the relay on
+#        print("Turning relay ON")
+#        GPIO.output(relay_pin, True)
+#        time.sleep(0.1)  # Keep the relay on for 5 seconds
+#        # Turn the relay off
+#        print("Turning relay OFF")
+#        GPIO.output(relay_pin, False)
+#        time.sleep(0.1)  # Keep the relay off for 5 seconds
 
-except KeyboardInterrupt:
-    print("Program interrupted")
+#except KeyboardInterrupt:
+#    print("Program interrupted")
 
-finally:
-    # Clean up the GPIO settings
-    GPIO.cleanup()
+#finally:
+#    # Clean up the GPIO settings
+#    GPIO.cleanup()

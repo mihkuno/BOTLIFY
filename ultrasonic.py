@@ -10,8 +10,9 @@ ECHO_PIN = 16
 
 
 
-GPIO.setup(1, GPIO.OUT)
-
+#GPIO.setup(1, GPIO.OUT)
+GPIO.cleanup()
+time.sleep(0.5)
 
 GPIO.setup(VCC_PIN, GPIO.OUT)
 GPIO.output(VCC_PIN, True)
@@ -23,9 +24,9 @@ GPIO.setup(ECHO_PIN, GPIO.IN)
 
 
 GPIO.output(TRIG_PIN, True)
-GPIO.output(1, True)
+#GPIO.output(1, True)
 
-time.sleep(0.5)
+time.sleep(1)
 
 
 def distance():
